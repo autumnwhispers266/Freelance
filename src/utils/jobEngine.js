@@ -1,4 +1,4 @@
-import { getJobStatus } from './jobState';
+import { getJobStatus, isJobSaved } from './jobState';
 
 export const sortJobs = (jobsArray) => {
   return [...jobsArray].sort((a, b) => {
@@ -21,6 +21,7 @@ export const filterJobs = (jobsArray, category) => {
 export const mergeWithApplicationState = (jobsArray) => {
   return jobsArray.map(job => ({
     ...job,
-    appliedStatus: getJobStatus(job.id)
+    appliedStatus: getJobStatus(job.id),
+    isSaved: isJobSaved(job.id)
   }));
 };

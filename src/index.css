@@ -245,3 +245,55 @@ tbody tr:nth-child(even) {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* Spinner animation for Apply button */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.apply-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* Job Card hover polish */
+.job-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Animation utilities */
+.animation-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animation-scaleUp {
+  animation: scaleUp 0.3s ease-out;
+}
+
+/* Flex utilities */
+.flex-wrap { flex-wrap: wrap; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.h-full { height: 100%; }
+.mt-auto { margin-top: auto; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.font-bold { font-weight: 700; }
+.text-sm { font-size: 0.875rem; }
+.overflow-hidden { overflow: hidden; }
+.p-0 { padding: 0; }
+.max-w-3xl { max-width: 48rem; }
+.relative { position: relative; }

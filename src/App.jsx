@@ -20,6 +20,7 @@ import PreferencesPage from './pages/PreferencesPage';
 import TranscriptionTestPage from './pages/TranscriptionTestPage';
 import CategoryPage from './pages/CategoryPage';
 import SavedItemsPage from './pages/SavedItemsPage';
+import ApplicationsPage from './pages/ApplicationsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="preferences" element={<PreferencesPage />} />
           <Route path="saved-items" element={<SavedItemsPage />} />
+          <Route path="applications" element={<ApplicationsPage />} />
           <Route path="jobs" element={<JobListings />} />
           <Route path="jobs/:id" element={<JobDetail />} />
         </Route>

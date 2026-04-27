@@ -1,7 +1,7 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bell, Grid, User, Heart, Briefcase, Settings, 
-  LogOut, PlayCircle, Star, Edit3, ChevronLeft, ChevronRight, X 
+  LogOut, PlayCircle, Star, Edit3, ChevronLeft, ChevronRight, X, FileText 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
@@ -186,7 +186,8 @@ export default function DashboardLayout() {
           <NavItem to={dashboardRoute} icon={Grid} label="Dashboard" active={location.pathname === '/dashboard' || location.pathname === '/client-dashboard' || location.pathname === '/admin'} />
           <NavItem to="/profile" icon={User} label="My Profile" />
           <NavItem to="/saved-items" icon={Heart} label="Saved Items" />
-          <NavItem to="/jobs" icon={Briefcase} label="Jobs / Applications" />
+          <NavItem to="/applications" icon={FileText} label="Applications" />
+          <NavItem to="/jobs" icon={Briefcase} label="Browse Jobs" />
           <NavItem to="#" icon={Bell} label="Notifications" badge={unreadCount} onClick={(e) => { e.preventDefault(); setNotificationsOpen(true); markNotificationsRead(); }} />
           <NavItem to="/settings" icon={Settings} label="Settings" />
           
