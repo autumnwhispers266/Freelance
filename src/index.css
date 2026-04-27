@@ -72,6 +72,12 @@ button, a, input[type="submit"], input[type="button"], input[type="checkbox"], i
 .text-green { color: var(--status-green); }
 .text-amber { color: var(--status-amber); }
 
+.hover-elevation { transition: all 0.3s ease; }
+.hover-elevation:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)); }
+.transition-smooth { transition: all 0.3s ease; }
+.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
 .bg-white { background-color: var(--bg-surface); }
 .bg-offwhite { background-color: var(--bg-primary); }
 

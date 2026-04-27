@@ -1,4 +1,4 @@
-import { Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -9,6 +9,10 @@ import marketingImg from '../assets/marketing.jpg';
 import mediaImg from '../assets/media.jpg';
 import transcriptionImg from '../assets/transcription.jpg';
 import heroImg from '../assets/hero.jpg';
+
+import { featuredJobs } from '../data/jobs';
+import { sortJobs, filterJobs, mergeWithApplicationState } from '../utils/jobEngine';
+import JobCard from '../components/JobCard';
 
 const CATEGORIES = [
   { name: 'Creative and Design', img: creativeImg },
@@ -21,37 +25,51 @@ const CATEGORIES = [
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('All');
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [jobs, setJobs] = useState([]);
+  const [user, setUser] = useState(null);
+  const [renderTrigger, setRenderTrigger] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchJobs();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUser(data.user);
+    });
   }, []);
 
-  const fetchJobs = async () => {
-    const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false }).limit(20);
-    if (data) setJobs(data);
-  };
-
-  const filteredJobs = activeTab === 'All' 
-    ? jobs 
-    : jobs.filter(j => j.category === activeTab);
-
   const handleTabClick = (tab) => {
-    if (tab === 'Transcription') {
-      navigate('/transcription-test');
-    } else {
-      setActiveTab(tab);
-      setCarouselIndex(0);
-    }
+    setActiveTab(tab);
   };
 
-  const nextSlide = () => {
-    if (carouselIndex < filteredJobs.length - 3) setCarouselIndex(c => c + 1);
-  };
-  const prevSlide = () => {
-    if (carouselIndex > 0) setCarouselIndex(c => c - 1);
+  const renderJobs = () => {
+    const jobsToRender = mergeWithApplicationState(sortJobs(filterJobs(featuredJobs, activeTab)));
+
+    if (jobsToRender.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 text-center border-base radius-base" style={{ minHeight: '300px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--bg-hover)', borderRadius: '50%', marginBottom: '16px' }}>
+            <Bookmark size={32} className="text-secondary" />
+          </div>
+          <h3 className="text-navy mb-2" style={{ fontSize: '1.5rem' }}>0 jobs found</h3>
+          <p className="text-secondary">No matching opportunities found. Try another category.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+        gap: '24px' 
+      }}>
+        {jobsToRender.slice(0, 10).map(job => (
+          <JobCard 
+            key={job.id} 
+            job={job} 
+            user={user} 
+            onApplicationUpdate={() => setRenderTrigger(t => t + 1)} 
+          />
+        ))}
+      </div>
+    );
   };
 
   const scrollToSection = (id) => {
@@ -101,48 +119,11 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-navy" style={{ fontSize: '2rem' }}>Featured Jobs</h2>
-          <div className="flex gap-1">
-            <button onClick={prevSlide} className="clickable card flex items-center justify-center" style={{ width: '40px', height: '40px', padding: 0, opacity: carouselIndex === 0 ? 0.5 : 1 }}>
-              <ChevronLeft size={24} className="text-navy" />
-            </button>
-            <button onClick={nextSlide} className="clickable card flex items-center justify-center" style={{ width: '40px', height: '40px', padding: 0, opacity: carouselIndex >= filteredJobs.length - 3 || filteredJobs.length <= 3 ? 0.5 : 1 }}>
-              <ChevronRight size={24} className="text-navy" />
-            </button>
-          </div>
         </div>
         
-        {filteredJobs.length === 0 ? (
-          <div className="text-secondary p-4 text-center border-base radius-base">No jobs found in this category. (Log in as a Client to post jobs!)</div>
-        ) : (
-          <div style={{ overflow: 'hidden' }}>
-            <div className="flex gap-3" style={{ transform: `translateX(-${carouselIndex * (33.333 + 24)}%)`, transition: 'transform 0.3s ease-in-out', width: 'max-content' }}>
-              {filteredJobs.map(job => (
-                <div key={job.id} className="card p-0" style={{ width: 'calc(1200px / 3 - 32px)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  {job.image_url && (
-                    <div style={{ width: '100%', height: '160px', backgroundColor: 'var(--bg-hover)' }}>
-                      <img src={job.image_url} alt={job.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
-                  <div className="p-4" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                      <span className="badge badge-grey mb-2">{job.category}</span>
-                      <h3 className="text-navy mb-1" style={{ fontSize: '1.25rem' }}>{job.title}</h3>
-                      <p className="text-secondary mb-3" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{job.description}</p>
-                    </div>
-                    <div className="mt-auto flex justify-between items-end">
-                      <div style={{ fontWeight: 700 }}>${job.budget}</div>
-                    </div>
-                  </div>
-                  <button className="clickable hover-bg" style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-surface)', border: 'none', padding: '6px', borderRadius: '50%', boxShadow: 'var(--shadow-base)' }}>
-                    <Bookmark size={18} className="text-secondary" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {renderJobs()}
       </section>
 
       {/* How It Works */}

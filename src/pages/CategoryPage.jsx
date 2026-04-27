@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Briefcase, MapPin, ArrowLeft } from 'lucide-react';
+import { Bookmark, ArrowLeft } from 'lucide-react';
 import creativeImg from '../assets/creative.jpg';
 import writingImg from '../assets/writing.jpg';
 import webImg from '../assets/web.jpg';
 import marketingImg from '../assets/marketing.jpg';
 import mediaImg from '../assets/media.jpg';
 import transcriptionImg from '../assets/transcription.jpg';
+
+import { featuredJobs } from '../data/jobs';
+import { sortJobs, filterJobs, mergeWithApplicationState } from '../utils/jobEngine';
+import JobCard from '../components/JobCard';
 
 const CATEGORY_DATA = {
   'creative-and-design': {
@@ -45,29 +49,16 @@ const CATEGORY_DATA = {
 export default function CategoryPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [renderTrigger, setRenderTrigger] = useState(0);
 
   const category = CATEGORY_DATA[slug];
 
   useEffect(() => {
-    if (category) {
-      fetchJobs(category.name);
-    }
-  }, [category]);
-
-  const fetchJobs = async (categoryName) => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('category', categoryName)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    
-    if (data) setJobs(data);
-    setLoading(false);
-  };
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUser(data.user);
+    });
+  }, []);
 
   if (!category) {
     return (
@@ -78,10 +69,12 @@ export default function CategoryPage() {
     );
   }
 
+  const jobsToRender = mergeWithApplicationState(sortJobs(filterJobs(featuredJobs, category.name)));
+
   return (
     <div className="w-full">
       {/* Category Hero */}
-      <div style={{ position: 'relative', height: '300px', backgroundColor: 'var(--navy)' }}>
+      <div style={{ position: 'relative', height: '300px', backgroundColor: 'var(--accent-navy)' }}>
         <img 
           src={category.img} 
           alt={category.name} 
@@ -113,32 +106,23 @@ export default function CategoryPage() {
           </button>
         </div>
 
-        {loading ? (
-          <div className="text-center p-4">Loading related jobs...</div>
-        ) : jobs.length === 0 ? (
-          <div className="card text-center p-4 text-secondary">
-            No related jobs currently available in this category.
+        {jobsToRender.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center border-base radius-base" style={{ minHeight: '300px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--bg-hover)', borderRadius: '50%', marginBottom: '16px' }}>
+              <Bookmark size={32} className="text-secondary" />
+            </div>
+            <h3 className="text-navy mb-2" style={{ fontSize: '1.5rem' }}>0 jobs found</h3>
+            <p className="text-secondary">No matching opportunities found. Try another category.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            {jobs.map(job => (
-              <div key={job.id} className="card p-3">
-                <span className="badge badge-grey mb-1">{job.category}</span>
-                <h3 className="text-navy mb-1" style={{ fontSize: '1.25rem' }}>{job.title}</h3>
-                <p className="text-secondary mb-3" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {job.description}
-                </p>
-                <div className="flex gap-4 text-secondary mb-3" style={{ fontSize: '0.875rem' }}>
-                  <div className="flex items-center gap-1"><Briefcase size={16} /> ${job.budget}</div>
-                  <div className="flex items-center gap-1"><MapPin size={16} /> Remote</div>
-                </div>
-                <button 
-                  className="btn btn-primary w-full" 
-                  onClick={() => navigate(`/jobs?category=${encodeURIComponent(job.category)}`)}
-                >
-                  View Details
-                </button>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+            {jobsToRender.slice(0, 8).map(job => (
+              <JobCard 
+                key={job.id} 
+                job={job} 
+                user={user} 
+                onApplicationUpdate={() => setRenderTrigger(t => t + 1)} 
+              />
             ))}
           </div>
         )}
